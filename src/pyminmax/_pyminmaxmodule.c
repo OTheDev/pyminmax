@@ -2,7 +2,7 @@
 #include "Python.h"
 
 static PyObject *
-pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
+_pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
 {
     PyObject *v, *it, *item, *val, *minitem, *minval, *maxitem, *maxval;
     PyObject *result, *emptytuple, *defaultval = NULL, *keyfunc = NULL;
@@ -138,23 +138,23 @@ pair. The default keyword-only argument specifies an object to return if the\n\
 provided iterable is empty.\n\n\
 With two or more arguments, return the smallest and largest argument.");
 
-static PyMethodDef pyminmax_methods[] = {
-    {"minmax", (PyCFunction)(void(*)(void))pyminmax_minmax, METH_VARARGS |
-                                                            METH_KEYWORDS,
-                                                            minmax_doc},
+static PyMethodDef _pyminmax_methods[] = {
+    {"minmax", (PyCFunction)(void(*)(void))_pyminmax_minmax, METH_VARARGS |
+                                                             METH_KEYWORDS,
+                                                             minmax_doc},
     {NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef pyminmaxmodule = {
+static struct PyModuleDef _pyminmaxmodule = {
     .m_base = PyModuleDef_HEAD_INIT,
-    .m_name = "pyminmax",
+    .m_name = "_pyminmax",
     .m_doc = NULL,
     .m_size = -1,
-    .m_methods = pyminmax_methods
+    .m_methods = _pyminmax_methods
 };
 
 PyMODINIT_FUNC
-PyInit_pyminmax(void)
+PyInit__pyminmax(void)
 {
-    return PyModule_Create(&pyminmaxmodule);
+    return PyModule_Create(&_pyminmaxmodule);
 }
