@@ -5,11 +5,12 @@ minmax(iterable, *, key=None)
 minmax(iterable, *, default, key=None)
 minmax(arg1, arg2, *args, key=None)
 ```
-- With a single iterable argument, return its smallest and largest items as a
+With a single iterable argument, return its smallest and largest items as a
 tuple pair. The *default* keyword-only argument specifies an object to return if
 the provided iterable is empty. If the iterable is empty and *default* is not
 provided, a *ValueError* is raised.
-- With two or more arguments, return the smallest and largest argument as a
+
+With two or more arguments, return the smallest and largest argument as a
 tuple pair.
 
 The *key* argument specifies a one-argument ordering function like that used
