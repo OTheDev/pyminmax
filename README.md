@@ -1,5 +1,4 @@
 # pyminmax
-``minmax()`` function
 ```
 minmax(iterable, *, key=None)
 minmax(iterable, *, default, key=None)
@@ -32,6 +31,10 @@ pip install pyminmax
 (-100, 100)
 >>> minmax((), default=1)
 1
+>>> minmax(5, 2, 0, 100, -100, 10)
+(-100, 100)
+>>> minmax(5, 2, 0, 100, -100, 10, key=lambda x: -x)
+(100, -100)
 ```
 ## Test
 Once installed, run the test suite via
