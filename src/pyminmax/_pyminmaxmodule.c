@@ -96,7 +96,6 @@ _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
         goto Fail_it;
     }
     if (minval == NULL) {
-        assert(maxval == NULL && maxitem == NULL && minitem == NULL);
         if (defaultval != NULL) {
             Py_DECREF(it);
             return Py_NewRef(defaultval);
@@ -107,11 +106,9 @@ _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
             return NULL;
         }
     }
-    else {
-        Py_DECREF(maxval);
-        Py_DECREF(minval);
-    }
-    result = PyTuple_Pack(2, minitem, maxitem);
+    result = Py_BuildValue("(OO)", minitem, maxitem);
+    Py_DECREF(minval);
+    Py_DECREF(maxval);
     Py_DECREF(minitem);
     Py_DECREF(maxitem);
     Py_DECREF(it);
