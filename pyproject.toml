@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyminmax"
-version = "0.1.1"
+dynamic = ["version"]
 license = {file = "LICENSE"}
 
 # Description/Documentation
@@ -26,3 +26,6 @@ authors = [{name = "Owain Davies"}]
 
 [project.urls]
 homepage = "https://github.com/OTheDev/pyminmax"
+
+[tool.setuptools.dynamic]
+version = {attr = "pyminmax.__version__"}
