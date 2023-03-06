@@ -1,11 +1,19 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
 
+PyDoc_STRVAR(minmax_doc,
+"minmax(iterable, *[, default=obj, key=func]) -> (minitem, maxitem)\n\
+minmax(arg1, arg2, *args, *[, key=func]) -> (minitem, maxitem)\n\n\
+With a single iterable argument, return its smallest and largest item as a \n\
+pair. The default keyword-only argument specifies an object to return if the\n\
+provided iterable is empty.\n\n\
+With two or more arguments, return the smallest and largest argument.");
+
 static PyObject *
 _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *v, *it, *item, *val, *minitem, *minval, *maxitem, *maxval;
-    PyObject *result, *emptytuple, *defaultval = NULL, *keyfunc = NULL;
+    PyObject *v, *it, *item, *val, *minitem, *maxitem, *result, *emptytuple;
+    PyObject *defaultval = NULL, *keyfunc = NULL;
     static char *kwlist[] = {"key", "default", NULL};
     const char *name = "minmax";
     const int positional = PyTuple_Size(args) > 1;
@@ -23,13 +31,15 @@ _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
     }
 
     emptytuple = PyTuple_New(0);
-    if (emptytuple == NULL)
+    if (emptytuple == NULL) {
         return NULL;
+    }
     ret = PyArg_ParseTupleAndKeywords(emptytuple, kwds, "|$OO:minmax", kwlist,
                                       &keyfunc, &defaultval);
     Py_DECREF(emptytuple);
-    if (!ret)
+    if (!ret) {
         return NULL;
+    }
 
     if (positional && defaultval != NULL) {
         PyErr_Format(PyExc_TypeError,
@@ -38,41 +48,119 @@ _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
+    /* it = iter(v) */
     it = PyObject_GetIter(v);
     if (it == NULL) {
         return NULL;
     }
 
-    if (keyfunc == Py_None) {
-        keyfunc = NULL;
+    /* Get the first value from the iterator it. If there are no remaining
+     * values, returns NULL with no exception set. If an error occurs while
+     * retrieving the item, returns NULL and passes along the exception. */
+    item = PyIter_Next(it);
+    if (item == NULL) {
+        if (PyErr_Occurred()) {
+            Py_DECREF(it);
+            return NULL;
+        }
+        else if (defaultval != NULL) {
+            Py_DECREF(it);
+            return Py_NewRef(defaultval);
+        }
+        else {
+            PyErr_Format(PyExc_ValueError,
+                         "%s() iterable argument is empty", name);
+            Py_DECREF(it);
+            return NULL;
+        }
     }
 
-    minitem = NULL;
-    minval = NULL;
-    maxitem = NULL;
-    maxval = NULL;
-    while (( item = PyIter_Next(it) )) {
-        if (keyfunc != NULL) {
-            val = PyObject_CallOneArg(keyfunc, item);
-            if (val == NULL)
-                goto Fail_it_item;
+    /* OWN: item, it */
+    if (keyfunc == NULL || keyfunc == Py_None) {
+        minitem = item;
+        maxitem = Py_NewRef(item);
+
+        /* OWN: minitem, maxitem, it */
+        while (( item = PyIter_Next(it) )) {
+            /* OWN: item, minitem, maxitem, it */
+            int cmp_mx = PyObject_RichCompareBool(item, maxitem, Py_GT);
+            int cmp_mn = PyObject_RichCompareBool(item, minitem, Py_LT);
+
+            if (cmp_mx < 0 || cmp_mn < 0) {
+                Py_DECREF(item);
+                Py_DECREF(minitem);
+                Py_DECREF(maxitem);
+                Py_DECREF(it);
+                return NULL;
+            }
+            else if (cmp_mx > 0) {
+                Py_DECREF(maxitem);
+                maxitem = item;
+            }
+            else if (cmp_mn > 0) {
+                Py_DECREF(minitem);
+                minitem = item;
+            }
+            else {
+                Py_DECREF(item);
+            }
         }
-        else {
-            val = Py_NewRef(item);
+        if (PyErr_Occurred()) {
+            Py_DECREF(minitem);
+            Py_DECREF(maxitem);
+            Py_DECREF(it);
+            return NULL;
+        }
+        result = Py_BuildValue("(OO)", minitem, maxitem);
+        Py_DECREF(minitem);
+        Py_DECREF(maxitem);
+        Py_DECREF(it);
+        return result;
+    }
+    else {
+        PyObject *minval, *maxval;
+
+        /* Call a callable Python object, keyfunc, with exactly 1 positional
+         * argument, item, and no keyword arguments. Return the result of the
+         * call on success, or raise an exception and return NULL on failure. */
+        val = PyObject_CallOneArg(keyfunc, item);
+        if (val == NULL) {
+            Py_DECREF(item);
+            Py_DECREF(it);
+            return NULL;
         }
 
-        if (minval == NULL) {
-            minitem = item;
-            minval = val;
-            maxitem = Py_NewRef(item);
-            maxval = Py_NewRef(val);
-        }
-        else {
+        minitem = item;
+        minval = val;
+        maxitem = Py_NewRef(item);
+        maxval = Py_NewRef(val);
+
+        /* OWN: minitem, minval, maxitem, maxval, it */
+        while (( item = PyIter_Next(it) )) {
+            /* OWN: item, minitem, minval, maxitem, maxval, it */
+            val = PyObject_CallOneArg(keyfunc, item);
+            if (val == NULL) {
+                Py_DECREF(item);
+                Py_DECREF(minitem);
+                Py_DECREF(maxitem);
+                Py_DECREF(minval);
+                Py_DECREF(maxval);
+                Py_DECREF(it);
+                return NULL;
+            }
+            /* OWN: item, val, minitem, minval, maxitem, maxval, it */
             int cmp_mx = PyObject_RichCompareBool(val, maxval, Py_GT);
             int cmp_mn = PyObject_RichCompareBool(val, minval, Py_LT);
 
             if (cmp_mx < 0 || cmp_mn < 0) {
-                goto Fail_it_item_and_val;
+                Py_DECREF(val);
+                Py_DECREF(item);
+                Py_DECREF(minitem);
+                Py_DECREF(maxitem);
+                Py_DECREF(minval);
+                Py_DECREF(maxval);
+                Py_DECREF(it);
+                return NULL;
             }
             else if (cmp_mx > 0) {
                 Py_DECREF(maxval);
@@ -91,49 +179,23 @@ _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
                 Py_DECREF(val);
             }
         }
-    }
-    if (PyErr_Occurred()) {
-        goto Fail_it;
-    }
-    if (minval == NULL) {
-        if (defaultval != NULL) {
-            Py_DECREF(it);
-            return Py_NewRef(defaultval);
-        } else {
-            PyErr_Format(PyExc_ValueError,
-                         "%s() iterable argument is empty", name);
+        if (PyErr_Occurred()) {
+            Py_DECREF(minval);
+            Py_DECREF(minitem);
+            Py_DECREF(maxval);
+            Py_DECREF(maxitem);
             Py_DECREF(it);
             return NULL;
         }
+        result = Py_BuildValue("(OO)", minitem, maxitem);
+        Py_DECREF(minval);
+        Py_DECREF(minitem);
+        Py_DECREF(maxval);
+        Py_DECREF(maxitem);
+        Py_DECREF(it);
+        return result;
     }
-    result = Py_BuildValue("(OO)", minitem, maxitem);
-    Py_DECREF(minval);
-    Py_DECREF(maxval);
-    Py_DECREF(minitem);
-    Py_DECREF(maxitem);
-    Py_DECREF(it);
-    return result;
-
-Fail_it_item_and_val:
-    Py_DECREF(val);
-Fail_it_item:
-    Py_DECREF(item);
-Fail_it:
-    Py_XDECREF(minval);
-    Py_XDECREF(minitem);
-    Py_XDECREF(maxval);
-    Py_XDECREF(maxitem);
-    Py_DECREF(it);
-    return NULL;
 }
-
-PyDoc_STRVAR(minmax_doc,
-"minmax(iterable, *[, default=obj, key=func]) -> (minitem, maxitem)\n\
-minmax(arg1, arg2, *args, *[, key=func]) -> (minitem, maxitem)\n\n\
-With a single iterable argument, return its smallest and largest item as a \n\
-pair. The default keyword-only argument specifies an object to return if the\n\
-provided iterable is empty.\n\n\
-With two or more arguments, return the smallest and largest argument.");
 
 static PyMethodDef _pyminmax_methods[] = {
     {"minmax", (PyCFunction)(void(*)(void))_pyminmax_minmax, METH_VARARGS |
