@@ -47,9 +47,14 @@ class MinmaxTest(unittest.TestCase):
         for stmt in (
             "minmax(key=int)",                 # no args
             "minmax(default=None)",
-            "minmax(1, 2, default=None)",      # require container for default
             "minmax(default=None, key=int)",
-            "minmax(1, key=int)",              # single arg not iterable
+            "minmax(abc=2)",
+            "minmax(1, 2, default=None)",      # require container for default
+            "minmax(1, 2, key=int, default=int)",
+            "minmax(1)",                       # single arg not iterable
+            "minmax(1, default=2)",
+            "minmax(1, key=int)",
+            "minmax(1, key=int, default=2)",
             "minmax(1, 2, keystone=int)",      # wrong keyword
             "minmax(1, 2, key=int, abc=int)",  # two many keywords
             "minmax(1, 2, key=1)",             # keyfunc is not callable
