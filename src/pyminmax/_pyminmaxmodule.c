@@ -12,7 +12,7 @@ With two or more arguments, return the smallest and largest argument.");
 static PyObject *
 _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *v, *it, *item, *val, *minitem, *maxitem, *result, *emptytuple;
+    PyObject *v, *it, *item, *val, *minitem, *maxitem, *emptytuple;
     PyObject *defaultval = NULL, *keyfunc = NULL;
     static char *kwlist[] = {"key", "default", NULL};
     const char *name = "minmax";
@@ -111,11 +111,14 @@ _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
             Py_DECREF(it);
             return NULL;
         }
-        result = Py_BuildValue("(OO)", minitem, maxitem);
-        Py_DECREF(minitem);
-        Py_DECREF(maxitem);
+
+        /* 'N' same as 'O', except that corresponding argument's refcount is
+         * not incremented in the former case. If an error occurs in
+         * Py_BuildValue(), Py_BuildValue() decrements minitem, maxitem for us,
+         * so no need to test return value.
+         */
         Py_DECREF(it);
-        return result;
+        return Py_BuildValue("(NN)", minitem, maxitem);
     }
     else {
         PyObject *minval, *maxval;
@@ -187,13 +190,11 @@ _pyminmax_minmax(PyObject *self, PyObject *args, PyObject *kwds)
             Py_DECREF(it);
             return NULL;
         }
-        result = Py_BuildValue("(OO)", minitem, maxitem);
+
         Py_DECREF(minval);
-        Py_DECREF(minitem);
         Py_DECREF(maxval);
-        Py_DECREF(maxitem);
         Py_DECREF(it);
-        return result;
+        return Py_BuildValue("(NN)", minitem, maxitem);
     }
 }
 
