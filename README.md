@@ -18,7 +18,8 @@ for ``list.sort()``.
 If multiple items are minimal or maximal, the function returns the first ones
 encountered.
 
-It is written in C, adapted straight from CPython's [implementation](https://github.com/python/cpython/blob/a74cd3ba5de1aad1a1e1ee57328b54c22be47f77/Python/bltinmodule.c#L1728)
+It is [written in C](https://github.com/OTheDev/pyminmax/blob/main/src/pyminmax/_pyminmaxmodule.c),
+adapted straight from CPython's [implementation](https://github.com/python/cpython/blob/a74cd3ba5de1aad1a1e1ee57328b54c22be47f77/Python/bltinmodule.c#L1728)
 of ``min()``, ``max()``.
 ## Installation
 ```
