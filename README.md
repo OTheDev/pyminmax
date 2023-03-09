@@ -37,11 +37,13 @@ pip install pyminmax
 >>> minmax(5, 2, 0, 100, -100, 10, key=lambda x: -x)
 (100, -100)
 ```
+
 ## Test
-Once installed, run the test suite via
+Run the test suite
 ```
-python -m unittest pyminmax.tests --verbose
+python -m pyminmax.tests
 ```
+
 ## Branches
 - ``0.1`` branch contains the latest release (``0.1.4``).
 - ``main`` is the development branch.
