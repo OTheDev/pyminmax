@@ -43,5 +43,5 @@ Once installed, run the test suite via
 python -m unittest pyminmax.tests --verbose
 ```
 ## Branches
-- ``0.1`` branch contains the latest release (``0.1.3.post1``).
+- ``0.1`` branch contains the latest release (``0.1.4``).
 - ``main`` is the development branch.
