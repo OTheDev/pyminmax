@@ -1,4 +1,5 @@
 # pyminmax
+
 ```
 minmax(iterable, *, key=None)
 minmax(iterable, *, default, key=None)
@@ -21,11 +22,15 @@ encountered.
 It is [written in C](https://github.com/OTheDev/pyminmax/blob/main/src/pyminmax/_pyminmaxmodule.c),
 adapted straight from CPython's [implementation](https://github.com/python/cpython/blob/a74cd3ba5de1aad1a1e1ee57328b54c22be47f77/Python/bltinmodule.c#L1728)
 of ``min()``, ``max()``.
+
 ## Installation
+
 ```
 pip install pyminmax
 ```
-## Usage
+
+## Basic Usage
+
 ```python3
 >>> from pyminmax import minmax
 >>> minmax([5, 2, 0, 100, -100, 10])
@@ -37,13 +42,3 @@ pip install pyminmax
 >>> minmax(5, 2, 0, 100, -100, 10, key=lambda x: -x)
 (100, -100)
 ```
-
-## Test
-Run the test suite
-```
-python -m pyminmax.tests
-```
-
-## Branches
-- ``0.1`` branch contains the latest release (``0.1.4``).
-- ``main`` is the development branch.
