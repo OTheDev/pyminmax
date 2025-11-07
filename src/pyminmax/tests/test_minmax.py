@@ -1,6 +1,3 @@
-###############################################################################
-# Imports
-###############################################################################
 import random
 import unittest
 
@@ -8,9 +5,6 @@ from operator import neg
 from pyminmax import minmax
 
 
-###############################################################################
-# Tests
-###############################################################################
 class MinmaxTest(unittest.TestCase):
     # Most of the tests here are adapted from test_max(), test_min() in the
     # CPython test suite.
